@@ -4,3 +4,16 @@ rilswitch.vendorlibpath=/system/lib/libsec-ril.so
 rilswitch.cfilibpath=/system/lib/libcfiril.so
 ro.ril.telephony.mqanelements=6
 ro.telephony.ril_class=trlteRIL
+rild.libargs=-d /dev/smd0
+ril.subscription.types=NV,RUIM
+ro.config.combined_signal=true
+
+ro.cdma.home.operator.numeric=310000
+ro.cdma.home.operator.alpha=Chameleon
+ro.gps.set_privacy=1
+ro.telephony.default_network=10
+telephony.lteOnCdmaDevice=1
+telephony.sms.pseudo_multipart=1
+
+# Set default cdma subscription to RUIM in database
+ro.telephony.default_cdma_sub=0
