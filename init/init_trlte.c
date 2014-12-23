@@ -63,8 +63,8 @@ void init_msm_properties(unsigned long msm_id, unsigned long msm_ver, char *boar
         gsm_properties();
     } else {
         /* trltespr */
-        property_set("ro.build.fingerprint", "samsung/trltespr/trltespr:4.4.4/KTU84P/N910PVPU1ANIE:user/release-keys");
-        property_set("ro.build.description", "trltespr-user 4.4.4 KTU84P N910PVPU1ANIE release-keys");
+        property_set("ro.build.fingerprint", "samsung/trltespr/trltespr:5.0.2/LRX22G/N910PVPU1ANK2:user/release-keys");
+        property_set("ro.build.description", "trltespr-user 5.0.2 LRX22G N910PVPU1ANK2 release-keys");
         property_set("ro.product.model", "SM-N910P");
         property_set("ro.product.device", "trltespr");
         gsm_properties();
@@ -77,7 +77,8 @@ void init_msm_properties(unsigned long msm_id, unsigned long msm_ver, char *boar
 
 void gsm_properties()
 {
-    property_set("telephony.lteOnCdmaDevice", "1");
-    property_set("ro.telephony.default_network", "10");
     property_set("ril.subscription.types", "NV,RUIM");
+    property_set("telephony.lteOnCdmaDevice", "1");	
+    property_set("ro.telephony.default_cdma_sub", cdma_sub);
+    property_set("ro.telephony.default_network", "8");
 }
