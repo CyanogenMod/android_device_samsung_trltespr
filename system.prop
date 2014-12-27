@@ -1,6 +1,4 @@
 # Radio
-ril.subscription.types=NV,RUIM
-telephony.lteOnCdmaDevice=1
 rild.libargs=-d /dev/smd0
 rild.libpath=/system/lib/libsec-ril.so
 ro.ril.telephony.mqanelements=6
