@@ -50,7 +50,7 @@ import com.android.internal.telephony.uicc.IccCardApplicationStatus;
 import com.android.internal.telephony.uicc.IccCardStatus;
 
 /**
- * RIL customization for Galaxy Note 4 (CDMA) LTE devices
+ * RIL customization for Galaxy Note 4 (GSM) LTE devices
  *
  * {@hide}
  */
