@@ -67,6 +67,7 @@ public class trlteRIL extends RIL {
     private static final int RIL_UNSOL_WB_AMR_STATE = 11017;
     private static final int RIL_UNSOL_SRVCC_HANDOVER = 11029;
     private static final int RIL_REQUEST_ACTIVATE_DATA_CALL = 11037;
+    private Message mPendingGetSimStatus;
 
     public trlteRIL(Context context, int preferredNetworkType,
             int cdmaSubscription, Integer instanceId) {
@@ -79,21 +80,91 @@ public class trlteRIL extends RIL {
     }
 
     @Override
+    protected void notifyRegistrantsCdmaInfoRec(CdmaInformationRecords infoRec) {
+        final int response = RIL_UNSOL_CDMA_INFO_REC;
+ 
+        if (infoRec.record instanceof CdmaSignalInfoRec) {
+            CdmaSignalInfoRec sir = (CdmaSignalInfoRec) infoRec.record;
+            if (sir != null
+                    && sir.isPresent
+                    && sir.signalType == SignalToneUtil.IS95_CONST_IR_SIGNAL_IS54B
+                    && sir.alertPitch == SignalToneUtil.IS95_CONST_IR_ALERT_MED
+                    && sir.signal == SignalToneUtil.IS95_CONST_IR_SIG_IS54B_L) {
+ 
+                Rlog.d(RILJ_LOG_TAG, "Dropping \"" + responseToString(response) + " "
+                        + retToString(response, sir)
+                        + "\" to prevent \"ring of death\" bug.");
+                return;
+            }
+        }
+ 
+        super.notifyRegistrantsCdmaInfoRec(infoRec);
+    }
+
+    private void
+    handleNitzTimeReceived(Parcel p) {
+        String nitz = (String)responseString(p);
+        //if (RILJ_LOGD) unsljLogRet(RIL_UNSOL_NITZ_TIME_RECEIVED, nitz);
+ 
+        // has bonus long containing milliseconds since boot that the NITZ
+        // time was received
+        long nitzReceiveTime = p.readLong();
+ 
+        Object[] result = new Object[2];
+ 
+        String fixedNitz = nitz;
+        String[] nitzParts = nitz.split(",");
+        if (nitzParts.length == 4) {
+            // 0=date, 1=time+zone, 2=dst, 3=garbage that confuses GsmServiceStateTracker (so remove it)
+            fixedNitz = nitzParts[0]+","+nitzParts[1]+","+nitzParts[2]+",";
+        }
+ 
+        result[0] = fixedNitz;
+        result[1] = Long.valueOf(nitzReceiveTime);
+ 
+        boolean ignoreNitz = SystemProperties.getBoolean(
+                        TelephonyProperties.PROPERTY_IGNORE_NITZ, false);
+ 
+        if (ignoreNitz) {
+            if (RILJ_LOGD) riljLog("ignoring UNSOL_NITZ_TIME_RECEIVED");
+        } else {
+            if (mNITZTimeRegistrant != null) {
+                mNITZTimeRegistrant
+                .notifyRegistrant(new AsyncResult (null, result, null));
+            } else {
+                // in case NITZ time registrant isnt registered yet
+                mLastNITZTimeInfo = result;
+            }
+        }
+    }
+ 
+    @Override
+    protected Object
+    responseSMS(Parcel p) {
+        // Notify that sendSMS() can send the next SMS
+        synchronized (mSMSLock) {
+            mIsSendingSMS = false;
+            mSMSLock.notify();
+        }
+ 
+        return super.responseSMS(p);
+    }
+ 
+    @Override
     public void
     dial(String address, int clirMode, UUSInfo uusInfo, Message result) {
         if (PhoneNumberUtils.isEmergencyNumber(address)) {
             dialEmergencyCall(address, clirMode, result);
             return;
         }
-
         RILRequest rr = RILRequest.obtain(RIL_REQUEST_DIAL, result);
-
+ 
         rr.mParcel.writeString(address);
         rr.mParcel.writeInt(clirMode);
-        rr.mParcel.writeInt(0);     // CallDetails.call_type
-        rr.mParcel.writeInt(1);     // CallDetails.call_domain
-        rr.mParcel.writeString(""); // CallDetails.getCsvFromExtras
-
+        rr.mParcel.writeInt(0);
+        rr.mParcel.writeInt(1);
+        rr.mParcel.writeString("");
+ 
         if (uusInfo == null) {
             rr.mParcel.writeInt(0); // UUS information is absent
         } else {
@@ -102,10 +173,96 @@ public class trlteRIL extends RIL {
             rr.mParcel.writeInt(uusInfo.getDcs());
             rr.mParcel.writeByteArray(uusInfo.getUserData());
         }
-
+ 
         if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
-
+ 
         send(rr);
+    }
+ 
+    //this method is used in the search network functionality.
+    // in mobile network setting-> network operators
+    @Override
+    protected Object
+    responseOperatorInfos(Parcel p) {
+        String strings[] = (String [])responseStrings(p);
+        ArrayList<OperatorInfo> ret;
+ 
+        if (strings.length % mQANElements != 0) {
+            throw new RuntimeException(
+                                       "RIL_REQUEST_QUERY_AVAILABLE_NETWORKS: invalid response. Got "
+                                       + strings.length + " strings, expected multiple of " + mQANElements);
+        }
+ 
+        ret = new ArrayList<OperatorInfo>(strings.length / mQANElements);
+        Operators init = null;
+        if (strings.length != 0) {
+            init = new Operators();
+        }
+        for (int i = 0 ; i < strings.length ; i += mQANElements) {
+            String temp = init.unOptimizedOperatorReplace(strings[i+0]);
+            ret.add (
+                     new OperatorInfo(
+                                      temp, //operatorAlphaLong
+                                      temp,//operatorAlphaShort
+                                      strings[i+2],//operatorNumeric
+                                      strings[i+3]));//state
+        }
+ 
+        return ret;
+    }
+ 
+    @Override
+    public void getImsRegistrationState(Message result) {
+        if(mRilVersion >= 8)
+            super.getImsRegistrationState(result);
+        else {
+            if (result != null) {
+                CommandException ex = new CommandException(
+                    CommandException.Error.REQUEST_NOT_SUPPORTED);
+                AsyncResult.forMessage(result, null, ex);
+                result.sendToTarget();
+            }
+        }
+    }
+ 
+    public void
+    dialEmergencyCall(String address, int clirMode, Message result) {
+        RILRequest rr;
+        Rlog.v(RILJ_LOG_TAG, "Emergency dial: " + address);
+ 
+        rr = RILRequest.obtain(RIL_REQUEST_DIAL_EMERGENCY, result);
+        rr.mParcel.writeString(address + "/");
+        rr.mParcel.writeInt(clirMode);
+        rr.mParcel.writeInt(0);  // UUS information is absent
+ 
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
+ 
+        send(rr);
+    }
+ 
+    // Hack for Lollipop
+    // The system now queries for SIM status before radio on, resulting
+    // in getting an APPSTATE_DETECTED state. The RIL does not send an
+    // RIL_UNSOL_RESPONSE_SIM_STATUS_CHANGED message after the SIM is
+    // initialized, so delay the message until the radio is on.
+    @Override
+    public void
+    getIccCardStatus(Message result) {
+        if (mState != RadioState.RADIO_ON) {
+            mPendingGetSimStatus = result;
+        } else {
+            super.getIccCardStatus(result);
+        }
+    }
+ 
+    @Override
+    protected void switchToRadioState(RadioState newState) {
+        super.switchToRadioState(newState);
+ 
+        if (newState == RadioState.RADIO_ON && mPendingGetSimStatus != null) {
+            super.getIccCardStatus(mPendingGetSimStatus);
+            mPendingGetSimStatus = null;
+        }
     }
 
     @Override
@@ -156,18 +313,6 @@ public class trlteRIL extends RIL {
             mIsSendingSMS = true;
         }
 
-    }
-
-    @Override
-    protected Object
-    responseSMS(Parcel p) {
-        // Notify that sendSMS() can send the next SMS
-        synchronized (mSMSLock) {
-            mIsSendingSMS = false;
-            mSMSLock.notify();
-        }
-
-        return super.responseSMS(p);
     }
 
     @Override
@@ -368,20 +513,4 @@ public class trlteRIL extends RIL {
         }
     }
 
-    private void
-    dialEmergencyCall(String address, int clirMode, Message result) {
-        RILRequest rr;
-
-        rr = RILRequest.obtain(RIL_REQUEST_DIAL_EMERGENCY, result);
-        rr.mParcel.writeString(address);
-        rr.mParcel.writeInt(clirMode);
-        rr.mParcel.writeInt(0);        // CallDetails.call_type
-        rr.mParcel.writeInt(3);        // CallDetails.call_domain
-        rr.mParcel.writeString("");    // CallDetails.getCsvFromExtra
-        rr.mParcel.writeInt(0);        // Unknown
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
-
-        send(rr);
-    }
 }
