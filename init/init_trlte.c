@@ -79,6 +79,6 @@ void cdma_properties(char cdma_sub[], char op_numeric[], char op_alpha[])
     property_set("ro.cdma.home.operator.numeric", op_numeric);
     property_set("ro.cdma.home.operator.alpha", op_alpha);
     property_set("ro.telephony.default_cdma_sub", cdma_sub);
-    property_set("ro.telephony.default_network", "8");
+    property_set("ro.telephony.default_network", "10");
     property_set("telephony.lteOnCdmaDevice", "1");
 }
