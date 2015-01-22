@@ -494,3 +494,4 @@ public class trlteRIL extends RIL implements CommandsInterface {
         rr.mParcel.writeInt(0);
         send(rr);
     }
+}
