@@ -25,7 +25,6 @@ import android.os.Message;
 import android.os.Parcel;
 import android.os.SystemProperties;
 import android.telephony.Rlog;
-
 import android.telephony.SignalStrength;
 import android.telephony.PhoneNumberUtils;
 
@@ -49,7 +48,6 @@ public class trlteRIL extends RIL implements CommandsInterface {
     private AudioManager mAudioManager;
     private boolean isGSM = false;
     private boolean newril = needsOldRilFeature("newril"); //4.4.4 verson of Samsung RIL
-
     private Message mPendingGetSimStatus;
 
     public trlteRIL(Context context, int preferredNetworkType,
@@ -120,15 +118,13 @@ public class trlteRIL extends RIL implements CommandsInterface {
                 return;
             }
         }
- 
-        super.notifyRegistrantsCdmaInfoRec(infoRec);
+         super.notifyRegistrantsCdmaInfoRec(infoRec);
     }
 
     private void
     handleNitzTimeReceived(Parcel p) {
         String nitz = (String)responseString(p);
         //if (RILJ_LOGD) unsljLogRet(RIL_UNSOL_NITZ_TIME_RECEIVED, nitz);
- 
         // has bonus long containing milliseconds since boot that the NITZ
         // time was received
         long nitzReceiveTime = p.readLong();
@@ -251,7 +247,6 @@ public class trlteRIL extends RIL implements CommandsInterface {
         response[7] &= 0xff;
 
         return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], response[9], response[10], response[11], true);
-
     }
 
     @Override
@@ -277,7 +272,6 @@ public class trlteRIL extends RIL implements CommandsInterface {
         }
         for (int i = 0 ; i < num ; i++) {
             dc = new DriverCall();
-
             dc.state = DriverCall.stateFromCLCC(p.readInt());
             dc.index = p.readInt() & 0xff;
             dc.TOA = p.readInt();
@@ -337,9 +331,7 @@ public class trlteRIL extends RIL implements CommandsInterface {
                 mEmergencyCallbackModeRegistrant.notifyRegistrant();
             }
         }
-
         return response;
-
     }
 
     @Override
@@ -381,7 +373,6 @@ public class trlteRIL extends RIL implements CommandsInterface {
                 super.processUnsolicited(p);
                 return;
         }
-
     }
 
     @Override
