@@ -4,3 +4,6 @@ rild.libpath=/system/lib/libsec-ril.so
 ro.telephony.ril.config=newril
 ro.telephony.ril_class=trlteRIL
 ro.ril.telephony.mqanelements=6
+
+# Temporary - Add fingerprint manually until it is corrected
+ro.build.fingerprint=samsung/trltespr/trltespr:6.0/MRA58K/N910PVPU4COG5:user/release-keys
