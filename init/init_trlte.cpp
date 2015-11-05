@@ -35,7 +35,7 @@
 
 #include "init_msm.h"
 
-void cdma_properties(char cdma_sub[], char op_numeric[], char op_alpha[])
+void cdma_properties(const char cdma_sub[], const char op_numeric[], const char op_alpha[])
 {
     property_set("ril.subscription.types", "NV,RUIM");
     property_set("ro.cdma.home.operator.numeric", op_numeric);
