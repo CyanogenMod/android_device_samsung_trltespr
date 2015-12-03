@@ -42,6 +42,7 @@ bin/qmuxd
 bin/rild
 bin/rmnetcli
 lib/libcfiril.so
+lib/libdetectmodem.so
 lib/libreference-ril.so
 lib/libril.so
 lib/librmnetctl.so
