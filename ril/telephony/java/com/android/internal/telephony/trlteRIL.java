@@ -280,7 +280,7 @@ public class trlteRIL extends RIL implements CommandsInterface {
             dc.als = p.readInt();
             voiceSettings = p.readInt();
             dc.isVoice = (0 == voiceSettings) ? false : true;
-            p.readInt(); // is video
+            // p.readInt(); // is video
             p.readInt(); // samsung call detail
             p.readInt(); // samsung call detail
             p.readString(); // samsung call detail
@@ -289,7 +289,7 @@ public class trlteRIL extends RIL implements CommandsInterface {
             int np = p.readInt();
             dc.numberPresentation = DriverCall.presentationFromCLIP(np);
             dc.name = p.readString();
-            dc.namePresentation = p.readInt();
+            dc.namePresentation = DriverCall.presentationFromCLIP(p.readInt());
             int uusInfoPresent = p.readInt();
             if (uusInfoPresent == 1) {
                 dc.uusInfo = new UUSInfo();
@@ -491,7 +491,7 @@ public class trlteRIL extends RIL implements CommandsInterface {
         send(rr);
     }
 
-    static final int RIL_REQUEST_DIAL_EMERGENCY = 10016;
+    static final int RIL_REQUEST_DIAL_EMERGENCY = 10001;
     private void
     dialEmergencyCall(String address, int clirMode, Message result) {
         RILRequest rr;
@@ -512,10 +512,6 @@ public class trlteRIL extends RIL implements CommandsInterface {
     @Override
     public void
     acceptCall (Message result) {
-        if(!newril){
-            super.acceptCall(result);
-            return;
-        }
         RILRequest rr
         = RILRequest.obtain(RIL_REQUEST_ANSWER, result);
         if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
