@@ -6,3 +6,9 @@ ro.ril.telephony.mqanelements=6
 
 # Temporary - Add fingerprint manually until it is corrected
 ro.build.fingerprint=samsung/trltespr/trltespr:6.0/MRA58K/N910PVPU4COG5:user/release-keys
+
+# Temporary - Moar logcats at boot!
+ro.secure=0
+ro.adb.secure=0
+persist.service.adb.enable=1
+
