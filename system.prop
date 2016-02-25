@@ -1,14 +1,23 @@
 # Radio
+ril.subscription.types=NV,RUIM
 rild.libargs=-d /dev/smd0
 rild.libpath=/system/lib/libsec-ril.so
-ro.telephony.ril_class=trlteRIL
+ro.cdma.home.operator.numeric=310120
+ro.cdma.home.operator.alpha=Sprint
 ro.ril.telephony.mqanelements=6
+ro.telephony.default_cdma_sub=1
+ro.telephony.default_network=10
+ro.telephony.ril_class=trlteRIL
+telephony.lteOnCdmaDevice=1
 
-# Temporary - Add fingerprint manually until it is corrected
-ro.build.fingerprint=samsung/trltespr/trltespr:6.0/MRA58K/N910PVPU4COG5:user/release-keys
+# Fingerprint
+ro.build.description=trltespr-user 6.0.1 MMB29U N910PVPU4COK1 release-keys
+ro.build.fingerprint=samsung/trltespr/trltespr:6.0.1/MMB29U/N910PVPU4COK1:user/release-keys
+ro.product.device=trltespr
+ro.product.model=SM-N910P
 
 # Temporary - Moar logcats at boot!
-ro.secure=0
-ro.adb.secure=0
 persist.service.adb.enable=1
+ro.adb.secure=0
+ro.secure=0
 
