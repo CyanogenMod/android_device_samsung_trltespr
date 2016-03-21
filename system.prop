@@ -15,9 +15,3 @@ ro.build.description=trltespr-user 6.0.1 MMB29U N910PVPU4COK1 release-keys
 ro.build.fingerprint=samsung/trltespr/trltespr:6.0.1/MMB29U/N910PVPU4COK1:user/release-keys
 ro.product.device=trltespr
 ro.product.model=SM-N910P
-
-# Temporary - Moar logcats at boot!
-persist.service.adb.enable=1
-ro.adb.secure=0
-ro.secure=0
-
